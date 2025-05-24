@@ -1,5 +1,5 @@
 <p align="center">
-# Google Analytics MCP Server
+<b>Google Analytics MCP Server</b>   
 
 [![PyPI version](https://badge.fury.io/py/google-analytics-mcp.svg)](https://badge.fury.io/py/google-analytics-mcp)
 [![PyPI downloads](https://img.shields.io/pypi/dm/google-analytics-mcp.svg)](https://pypi.org/project/google-analytics-mcp/)
