@@ -36,6 +36,8 @@ pip install google-analytics-mcp
 ```bash
 git clone https://github.com/surendranb/google-analytics-mcp.git
 cd google-analytics-mcp
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
