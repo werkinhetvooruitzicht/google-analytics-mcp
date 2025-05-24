@@ -1,9 +1,12 @@
+<p align="center">
+  <img src="logo.png" alt="Google Analytics MCP Logo" width="120" />
+</p>
+
 # Google Analytics MCP Server
 
 [![PyPI version](https://badge.fury.io/py/google-analytics-mcp.svg)](https://badge.fury.io/py/google-analytics-mcp)
-[![PyPI downloads](https://img.shields.io/pypi/dm/google-analytics-mcp.svg)](https://pypi.org/project/google-analytics-mcp/)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/surendranb/google-analytics-mcp)](https://github.com/surendranb/google-analytics-mcp/releases)
-[![GitHub all releases](https://img.shields.io/github/downloads/surendranb/google-analytics-mcp/total.svg)](https://github.com/surendranb/google-analytics-mcp/releases)
+[![GitHub stars](https://img.shields.io/github/stars/surendranb/google-analytics-mcp?style=social)](https://github.com/surendranb/google-analytics-mcp/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/surendranb/google-analytics-mcp?style=social)](https://github.com/surendranb/google-analytics-mcp/network/members)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Made with Love](https://img.shields.io/badge/Made%20with-❤️-red.svg)](https://github.com/surendranb/google-analytics-mcp)
