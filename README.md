@@ -1,6 +1,6 @@
 <p align="center">
   <img src="logo.png" alt="Google Analytics MCP Logo" width="120" />
-</p>
+
 
 # Google Analytics MCP Server
 
@@ -14,7 +14,7 @@
 Connect Google Analytics 4 data to Claude, Cursor and other MCP clients. Query your website traffic, user behavior, and analytics data in natural language with access to 200+ GA4 dimensions and metrics.
 
 **Compatible with:** Claude, Cursor and other MCP clients.
-
+</p>
 ---
 
 ## Prerequisites
