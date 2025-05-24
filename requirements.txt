@@ -1,0 +1,2 @@
+fastmcp>=0.1.0
+google-analytics-data>=0.16.0
