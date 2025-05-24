@@ -1,4 +1,4 @@
-<center>
+<p align="center">
 # Google Analytics MCP Server
 
 [![PyPI version](https://badge.fury.io/py/google-analytics-mcp.svg)](https://badge.fury.io/py/google-analytics-mcp)
@@ -10,7 +10,7 @@
 [![Made with Love](https://img.shields.io/badge/Made%20with-❤️-red.svg)](https://github.com/surendranb/google-analytics-mcp)
 
 Connect Google Analytics 4 data to Claude, Cursor and other MCP clients. Query your website traffic, user behavior, and analytics data in natural language with access to 200+ GA4 dimensions and metrics.
-</center>
+</p>
 **Compatible with:** Claude, Cursor and other MCP clients.
 
 ## Prerequisites
