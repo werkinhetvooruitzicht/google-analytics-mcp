@@ -1,12 +1,20 @@
 # Google Analytics MCP Server
 
-Connect Google Analytics 4 data to Claude, Cursor and other MCP clients. Ask questions about your website traffic, user behavior, and analytics data in natural language with access to 200+ GA4 dimensions and metrics.
+[![PyPI version](https://badge.fury.io/py/google-analytics-mcp.svg)](https://badge.fury.io/py/google-analytics-mcp)
+[![PyPI downloads](https://img.shields.io/pypi/dm/google-analytics-mcp.svg)](https://pypi.org/project/google-analytics-mcp/)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/surendranb/google-analytics-mcp)](https://github.com/surendranb/google-analytics-mcp/releases)
+[![GitHub all releases](https://img.shields.io/github/downloads/surendranb/google-analytics-mcp/total.svg)](https://github.com/surendranb/google-analytics-mcp/releases)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Made with Love](https://img.shields.io/badge/Made%20with-❤️-red.svg)](https://github.com/surendranb/google-analytics-mcp)
+
+Connect Google Analytics 4 data to Claude, Cursor and other MCP clients. Query your website traffic, user behavior, and analytics data in natural language with access to 200+ GA4 dimensions and metrics.
 
 **Compatible with:** Claude, Cursor and other MCP clients.
 
 ## Prerequisites
 
-**Check your Python setup first:**
+**Check your Python setup:**
 
 ```bash
 # Check Python version (need 3.8+)
@@ -18,22 +26,22 @@ pip --version
 pip3 --version
 ```
 
-**What you need:**
+**Required:**
 - Python 3.8 or higher
 - Google Analytics 4 property with data
 - Service account with Analytics Reporting API access
 
 ## Installation
 
-Choose either route:
+Choose either method:
 
-### Route 1: pip install (Recommended)
+### Method 1: pip install (Recommended)
 
 ```bash
 pip install google-analytics-mcp
 ```
 
-### Route 2: GitHub download
+### Method 2: GitHub download
 
 ```bash
 git clone https://github.com/surendranb/google-analytics-mcp.git
@@ -51,41 +59,39 @@ pip install -r requirements.txt
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. **Create or select a project**:
-   - If new: Click "New Project" → Enter project name → Create
-   - If existing: Select your project from the dropdown
-3. **Enable the Analytics Reporting API**:
+   - New project: Click "New Project" → Enter project name → Create
+   - Existing project: Select from dropdown
+3. **Enable the Analytics APIs**:
    - Go to "APIs & Services" → "Library"
-   - Search for "Google Analytics Reporting API"
-   - Click on it → Click "Enable"
-4. **Enable the Analytics Data API**:
-   - Search for "Google Analytics Data API" 
-   - Click on it → Click "Enable"
-5. **Create Service Account**:
+   - Search for "Google Analytics Reporting API" → Click "Enable"
+   - Search for "Google Analytics Data API" → Click "Enable"
+4. **Create Service Account**:
    - Go to "APIs & Services" → "Credentials"
    - Click "Create Credentials" → "Service Account"
-   - Enter a name (e.g., "ga4-mcp-server")
+   - Enter name (e.g., "ga4-mcp-server")
    - Click "Create and Continue"
-   - Skip role assignment for now → Click "Done"
-6. **Download JSON Key**:
-   - Click on your newly created service account
+   - Skip role assignment → Click "Done"
+5. **Download JSON Key**:
+   - Click your service account
    - Go to "Keys" tab → "Add Key" → "Create New Key"
    - Select "JSON" → Click "Create"
-   - **Save this file securely** - you'll need the path to it
+   - Save the JSON file - you'll need its path
 
 **Part B: Add Service Account to GA4**
 
-1. **Copy the service account email**:
-   - From the downloaded JSON file, find the `client_email` field
-   - Copy this email address (looks like: `ga4-mcp-server@your-project.iam.gserviceaccount.com`)
+1. **Get service account email**:
+   - Open the JSON file
+   - Find the `client_email` field
+   - Copy the email (format: `ga4-mcp-server@your-project.iam.gserviceaccount.com`)
 
 2. **Add to GA4 property**:
    - Go to [Google Analytics](https://analytics.google.com/)
    - Select your GA4 property
-   - Click "Admin" (gear icon in bottom left)
-   - Under "Property" column → Click "Property access management"
+   - Click "Admin" (gear icon at bottom left)
+   - Under "Property" → Click "Property access management"
    - Click "+" → "Add users"
    - Paste the service account email
-   - Select "Viewer" role (sufficient for reading data)
+   - Select "Viewer" role
    - Uncheck "Notify new users by email"
    - Click "Add"
 
@@ -93,25 +99,25 @@ pip install -r requirements.txt
 
 1. In [Google Analytics](https://analytics.google.com/), select your property
 2. Click "Admin" (gear icon)
-3. Under "Property" column → Click "Property details" 
+3. Under "Property" → Click "Property details" 
 4. Copy the **Property ID** (numeric, e.g., `1234567890`)
    - **Note**: This is different from the "Measurement ID" (starts with G-)
 
 ### Step 3: Test Your Setup (Optional)
 
-Before configuring Claude, verify your credentials work:
+Verify your credentials:
 
 1. **Install Google Analytics Data library**:
    ```bash
    pip install google-analytics-data
    ```
 
-2. **Test script** (save as `test_ga4.py`):
+2. **Create test script** (save as `test_ga4.py`):
    ```python
    import os
    from google.analytics.data_v1beta import BetaAnalyticsDataClient
    
-   # Set your credentials
+   # Set credentials path
    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/path/to/your/service-account-key.json"
    
    # Test connection
@@ -130,7 +136,7 @@ If you see "✅ GA4 credentials working!" you're ready to proceed.
 
 Add this to your MCP client configuration:
 
-**For Route 1 (pip install):**
+**For Method 1 (pip install):**
 ```json
 {
   "mcpServers": {
@@ -145,7 +151,7 @@ Add this to your MCP client configuration:
 }
 ```
 
-**For Route 2 (GitHub download):**
+**For Method 2 (GitHub download):**
 ```json
 {
   "mcpServers": {
@@ -162,13 +168,13 @@ Add this to your MCP client configuration:
 ```
 
 **Replace:**
-- `/path/to/your/service-account-key.json` with your actual credential file path
-- `346085905` with your actual GA4 Property ID
-- `/path/to/ga4-mcp-server/` with your actual download path (Route 2 only)
+- `/path/to/your/service-account-key.json` with your JSON file path
+- `346085905` with your GA4 Property ID
+- `/path/to/ga4-mcp-server/` with your download path (Method 2 only)
 
 ## Usage
 
-Once configured, ask Claude, Cursor or your MCP client questions like:
+Once configured, ask your MCP client questions like:
 
 ### **Discovery & Exploration:**
 - "What GA4 dimension categories are available?"
@@ -225,7 +231,7 @@ Access to **200+ GA4 dimensions and metrics** organized by category:
 
 ## Troubleshooting
 
-### Command not found (Route 1)
+### Command not found (Method 1)
 If `google-analytics-mcp` command not found, try:
 ```json
 {
@@ -246,13 +252,13 @@ pip install --user google-analytics-mcp
 
 ### Credentials not working
 1. **Verify the JSON file path** is correct and accessible
-2. **Check that the service account has Analytics Reporting API access**:
+2. **Check service account permissions**:
    - Go to Google Cloud Console → IAM & Admin → IAM
-   - Find your service account → Check it has necessary permissions
-3. **Ensure the service account email is added as a viewer in GA4**:
+   - Find your service account → Check permissions
+3. **Verify GA4 access**:
    - GA4 → Admin → Property access management
-   - Look for your service account email in the list
-4. **Verify you're using the Property ID, not Measurement ID**:
+   - Check for your service account email
+4. **Verify ID type**:
    - Property ID: numeric (e.g., `1234567890`) ✅
    - Measurement ID: starts with G- (e.g., `G-XXXXXXXXXX`) ❌
 
