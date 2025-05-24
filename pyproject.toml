@@ -3,20 +3,20 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ga4-mcp-server"
+name = "google-analytics-mcp"
 version = "1.0.0"
-description = "Google Analytics 4 MCP Server for Claude AI"
+description = "Google Analytics 4 MCP Server for Claude, Cursor, Windsurf etc"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "Surendran Balakrishnan", email = "surendran.balakrishnan@example.com"}
 ]
 requires-python = ">=3.8"
 dependencies = [
     "fastmcp>=0.1.0",
     "google-analytics-data>=0.16.0",
 ]
-keywords = ["google-analytics", "mcp", "claude", "ai", "analytics"]
+keywords = ["google-analytics", "mcp", "claude", "ai", "analytics", "ga4"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -30,9 +30,9 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/ga4-mcp-server"
-Repository = "https://github.com/yourusername/ga4-mcp-server"
-Issues = "https://github.com/yourusername/ga4-mcp-server/issues"
+Homepage = "https://github.com/surendranb/google-analytics-mcp"
+Repository = "https://github.com/surendranb/google-analytics-mcp"
+Issues = "https://github.com/surendranb/google-analytics-mcp/issues"
 
 [project.scripts]
-ga4-mcp-server = "ga4_mcp_server:main"
+google-analytics-mcp = "ga4_mcp_server:main"

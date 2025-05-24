@@ -1,6 +1,6 @@
-# GA4 MCP Server for Claude
+# Google Analytics MCP Server for Claude
 
-Connect Google Analytics 4 data directly to Claude AI conversations. Ask questions about your website traffic, user behavior, and analytics data in natural language.
+Connect Google Analytics 4 data directly to Claude AI conversations. Ask questions about your website traffic, user behavior, and analytics data in natural language with access to 200+ GA4 dimensions and metrics.
 
 ## Prerequisites
 
@@ -28,14 +28,14 @@ Choose either route:
 ### Route 1: pip install (Recommended)
 
 ```bash
-pip install ga4-mcp-server
+pip install google-analytics-mcp
 ```
 
 ### Route 2: GitHub download
 
 ```bash
-git clone https://github.com/yourusername/ga4-mcp-server.git
-cd ga4-mcp-server
+git clone https://github.com/surendranb/google-analytics-mcp.git
+cd google-analytics-mcp
 pip install -r requirements.txt
 ```
 
@@ -166,29 +166,63 @@ Add this to your Claude MCP configuration:
 
 Once configured, ask Claude questions like:
 
+### **Discovery & Exploration:**
+- "What GA4 dimension categories are available?"
+- "Show me all ecommerce metrics"  
+- "What dimensions can I use for geographic analysis?"
+
+### **Traffic Analysis:**
 - "What's my website traffic for the past week?"
 - "Show me user metrics by city for last month"
-- "Compare bounce rates between different time periods"
-- "What are my top pages by page views?"
+- "Compare bounce rates between different date ranges"
 
-## Available Metrics
+### **Multi-Dimensional Analysis:**
+- "Show me revenue by country and device category for last 30 days"
+- "Analyze sessions and conversions by campaign and source/medium"
+- "Compare user engagement across different page paths and traffic sources"
 
-**Default metrics:**
-- totalUsers
-- newUsers
-- bounceRate
-- screenPageViewsPerSession
-- averageSessionDuration
+### **E-commerce Analysis:**
+- "What are my top-performing products by revenue?"
+- "Show me conversion rates by traffic source and device type"
+- "Analyze purchase behavior by user demographics"
 
-**Default dimensions:**
-- date
+## Available Tools
 
-You can customize these by asking Claude to use different GA4 dimensions and metrics.
+The server provides 5 main tools:
+
+1. **`get_ga4_data`** - Retrieve GA4 data with custom dimensions and metrics
+2. **`list_dimension_categories`** - Browse available dimension categories
+3. **`list_metric_categories`** - Browse available metric categories  
+4. **`get_dimensions_by_category`** - Get dimensions for a specific category
+5. **`get_metrics_by_category`** - Get metrics for a specific category
+
+## Dimensions & Metrics
+
+Access to **200+ GA4 dimensions and metrics** organized by category:
+
+### **Dimension Categories:**
+- **Time**: date, hour, month, year, etc.
+- **Geography**: country, city, region
+- **Technology**: browser, device, operating system
+- **Traffic Source**: campaign, source, medium, channel groups
+- **Content**: page paths, titles, content groups
+- **E-commerce**: item details, transaction info
+- **User Demographics**: age, gender, language
+- **Google Ads**: campaign, ad group, keyword data
+- **And 10+ more categories**
+
+### **Metric Categories:**
+- **User Metrics**: totalUsers, newUsers, activeUsers
+- **Session Metrics**: sessions, bounceRate, engagementRate
+- **E-commerce**: totalRevenue, transactions, conversions
+- **Events**: eventCount, conversions, event values
+- **Advertising**: adRevenue, returnOnAdSpend
+- **And more specialized metrics**
 
 ## Troubleshooting
 
 ### Command not found (Route 1)
-If `ga4-mcp-server` command not found, try:
+If `google-analytics-mcp` command not found, try:
 ```json
 {
   "command": "python3",
@@ -203,7 +237,7 @@ If `ga4-mcp-server` command not found, try:
 ### Permission errors
 ```bash
 # Try user install instead of system-wide
-pip install --user ga4-mcp-server
+pip install --user google-analytics-mcp
 ```
 
 ### Credentials not working
@@ -222,6 +256,19 @@ pip install --user ga4-mcp-server
 - GA4 has daily quotas and rate limits
 - Try reducing the date range in your queries
 - Wait a few minutes between large requests
+
+## Project Structure
+
+```
+google-analytics-mcp/
+├── ga4_mcp_server.py       # Main MCP server
+├── ga4_dimensions.json     # All available GA4 dimensions  
+├── ga4_metrics.json        # All available GA4 metrics
+├── requirements.txt        # Python dependencies
+├── pyproject.toml          # Package configuration
+├── README.md              # This file
+└── claude-config-template.json  # MCP configuration template
+```
 
 ## License
 
