@@ -1,6 +1,8 @@
-# Google Analytics MCP Server for Claude
+# Google Analytics MCP Server
 
-Connect Google Analytics 4 data directly to Claude AI conversations. Ask questions about your website traffic, user behavior, and analytics data in natural language with access to 200+ GA4 dimensions and metrics.
+Connect Google Analytics 4 data to Claude, Cursor and other MCP clients. Ask questions about your website traffic, user behavior, and analytics data in natural language with access to 200+ GA4 dimensions and metrics.
+
+**Compatible with:** Claude, Cursor and other MCP clients.
 
 ## Prerequisites
 
@@ -124,9 +126,9 @@ Before configuring Claude, verify your credentials work:
 
 If you see "✅ GA4 credentials working!" you're ready to proceed.
 
-### Step 4: Configure Claude
+### Step 4: Configure Your MCP Client
 
-Add this to your Claude MCP configuration:
+Add this to your MCP client configuration:
 
 **For Route 1 (pip install):**
 ```json
@@ -166,7 +168,7 @@ Add this to your Claude MCP configuration:
 
 ## Usage
 
-Once configured, ask Claude questions like:
+Once configured, ask Claude, Cursor or your MCP client questions like:
 
 ### **Discovery & Exploration:**
 - "What GA4 dimension categories are available?"
