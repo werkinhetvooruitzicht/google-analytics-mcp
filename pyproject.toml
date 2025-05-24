@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "google-analytics-mcp"
-version = "1.0.1"
+version = "1.0.2"
 description = "Google Analytics 4 MCP Server - Access GA4 data in Claude, Cursor and other MCP clients"
 readme = "README.md"
 license = {text = "MIT"}
@@ -36,3 +36,9 @@ Issues = "https://github.com/surendranb/google-analytics-mcp/issues"
 
 [project.scripts]
 google-analytics-mcp = "ga4_mcp_server:main"
+
+[tool.setuptools]
+py-modules = ["ga4_mcp_server"]
+
+[tool.setuptools.package-data]
+"*" = ["*.json"]
