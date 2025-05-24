@@ -1,5 +1,4 @@
-<p align="center">
-<b>Google Analytics MCP Server</b>   
+# Google Analytics MCP Server
 
 [![PyPI version](https://badge.fury.io/py/google-analytics-mcp.svg)](https://badge.fury.io/py/google-analytics-mcp)
 [![PyPI downloads](https://img.shields.io/pypi/dm/google-analytics-mcp.svg)](https://pypi.org/project/google-analytics-mcp/)
@@ -10,8 +9,10 @@
 [![Made with Love](https://img.shields.io/badge/Made%20with-❤️-red.svg)](https://github.com/surendranb/google-analytics-mcp)
 
 Connect Google Analytics 4 data to Claude, Cursor and other MCP clients. Query your website traffic, user behavior, and analytics data in natural language with access to 200+ GA4 dimensions and metrics.
-</p>
+
 **Compatible with:** Claude, Cursor and other MCP clients.
+
+---
 
 ## Prerequisites
 
@@ -31,6 +32,8 @@ pip3 --version
 - Python 3.8 or higher
 - Google Analytics 4 property with data
 - Service account with Analytics Reporting API access
+
+---
 
 ## Step 1: Setup Google Analytics Credentials
 
@@ -62,7 +65,6 @@ pip3 --version
    - Open the JSON file
    - Find the `client_email` field
    - Copy the email (format: `ga4-mcp-server@your-project.iam.gserviceaccount.com`)
-
 2. **Add to GA4 property**:
    - Go to [Google Analytics](https://analytics.google.com/)
    - Select your GA4 property
@@ -78,7 +80,7 @@ pip3 --version
 
 1. In [Google Analytics](https://analytics.google.com/), select your property
 2. Click "Admin" (gear icon)
-3. Under "Property" → Click "Property details" 
+3. Under "Property" → Click "Property details"
 4. Copy the **Property ID** (numeric, e.g., `123456789`)
    - **Note**: This is different from the "Measurement ID" (starts with G-)
 
@@ -86,30 +88,33 @@ pip3 --version
 
 Verify your credentials:
 
-1. **Install Google Analytics Data library**:
-   ```bash
-   pip install google-analytics-data
-   ```
+```bash
+pip install google-analytics-data
+```
 
-2. **Create test script** (save as `test_ga4.py`):
-   ```python
-   import os
-   from google.analytics.data_v1beta import BetaAnalyticsDataClient
-   
-   # Set credentials path
-   os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/path/to/your/service-account-key.json"
-   
-   # Test connection
-   client = BetaAnalyticsDataClient()
-   print("✅ GA4 credentials working!")
-   ```
+Create a test script (`test_ga4.py`):
 
-3. **Run test**:
-   ```bash
-   python test_ga4.py
-   ```
+```python
+import os
+from google.analytics.data_v1beta import BetaAnalyticsDataClient
+
+# Set credentials path
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/path/to/your/service-account-key.json"
+
+# Test connection
+client = BetaAnalyticsDataClient()
+print("✅ GA4 credentials working!")
+```
+
+Run the test:
+
+```bash
+python test_ga4.py
+```
 
 If you see "✅ GA4 credentials working!" you're ready to proceed.
+
+---
 
 ## Step 2: Install the MCP Server
 
@@ -124,8 +129,8 @@ pip install google-analytics-mcp
 **MCP Configuration:**
 
 First, check your Python command:
+
 ```bash
-# Test which Python command works on your system:
 python3 --version
 python --version
 ```
@@ -133,6 +138,7 @@ python --version
 Then use the appropriate configuration:
 
 If `python3 --version` worked:
+
 ```json
 {
   "mcpServers": {
@@ -149,6 +155,7 @@ If `python3 --version` worked:
 ```
 
 If `python --version` worked:
+
 ```json
 {
   "mcpServers": {
@@ -175,6 +182,7 @@ pip install -r requirements.txt
 ```
 
 **MCP Configuration:**
+
 ```json
 {
   "mcpServers": {
@@ -190,6 +198,8 @@ pip install -r requirements.txt
 }
 ```
 
+---
+
 ## Step 3: Update Configuration
 
 **Replace these placeholders in your MCP configuration:**
@@ -197,29 +207,79 @@ pip install -r requirements.txt
 - `123456789` with your GA4 Property ID
 - `/full/path/to/ga4-mcp-server/` with your download path (Method B only)
 
+---
+
 ## Usage
 
 Once configured, ask your MCP client questions like:
 
-### **Discovery & Exploration:**
-- "What GA4 dimension categories are available?"
-- "Show me all ecommerce metrics"  
-- "What dimensions can I use for geographic analysis?"
+### Discovery & Exploration
+- What GA4 dimension categories are available?
+- Show me all ecommerce metrics
+- What dimensions can I use for geographic analysis?
 
-### **Traffic Analysis:**
-- "What's my website traffic for the past week?"
-- "Show me user metrics by city for last month"
-- "Compare bounce rates between different date ranges"
+### Traffic Analysis
+- What's my website traffic for the past week?
+- Show me user metrics by city for last month
+- Compare bounce rates between different date ranges
 
-### **Multi-Dimensional Analysis:**
-- "Show me revenue by country and device category for last 30 days"
-- "Analyze sessions and conversions by campaign and source/medium"
-- "Compare user engagement across different page paths and traffic sources"
+### Multi-Dimensional Analysis
+- Show me revenue by country and device category for last 30 days
+- Analyze sessions and conversions by campaign and source/medium
+- Compare user engagement across different page paths and traffic sources
 
-### **E-commerce Analysis:**
-- "What are my top-performing products by revenue?"
-- "Show me conversion rates by traffic source and device type"
-- "Analyze purchase behavior by user demographics"
+### E-commerce Analysis
+- What are my top-performing products by revenue?
+- Show me conversion rates by traffic source and device type
+- Analyze purchase behavior by user demographics
+
+---
+
+## Quick Start Examples
+
+Try these example queries to see the MCP's analytical capabilities:
+
+### 1. Geographic Distribution
+```
+Show me a map of visitors by city for the last 30 days, with a breakdown of new vs returning users
+```
+This demonstrates:
+- Geographic analysis
+- User segmentation
+- Time-based filtering
+- Data visualization
+
+### 2. User Behavior Analysis
+```
+Compare average session duration and pages per session by device category and browser over the last 90 days
+```
+This demonstrates:
+- Multi-dimensional analysis
+- Time series comparison
+- User engagement metrics
+- Technology segmentation
+
+### 3. Traffic Source Performance
+```
+Show me conversion rates and revenue by traffic source and campaign, comparing last 30 days vs previous 30 days
+```
+This demonstrates:
+- Marketing performance analysis
+- Period-over-period comparison
+- Conversion tracking
+- Revenue attribution
+
+### 4. Content Performance
+```
+What are my top 10 pages by engagement rate, and how has their performance changed over the last 3 months?
+```
+This demonstrates:
+- Content analysis
+- Trend analysis
+- Engagement metrics
+- Ranking and sorting
+
+---
 
 ## Available Tools
 
@@ -227,15 +287,17 @@ The server provides 5 main tools:
 
 1. **`get_ga4_data`** - Retrieve GA4 data with custom dimensions and metrics
 2. **`list_dimension_categories`** - Browse available dimension categories
-3. **`list_metric_categories`** - Browse available metric categories  
+3. **`list_metric_categories`** - Browse available metric categories
 4. **`get_dimensions_by_category`** - Get dimensions for a specific category
 5. **`get_metrics_by_category`** - Get metrics for a specific category
+
+---
 
 ## Dimensions & Metrics
 
 Access to **200+ GA4 dimensions and metrics** organized by category:
 
-### **Dimension Categories:**
+### Dimension Categories
 - **Time**: date, hour, month, year, etc.
 - **Geography**: country, city, region
 - **Technology**: browser, device, operating system
@@ -244,15 +306,17 @@ Access to **200+ GA4 dimensions and metrics** organized by category:
 - **E-commerce**: item details, transaction info
 - **User Demographics**: age, gender, language
 - **Google Ads**: campaign, ad group, keyword data
-- **And 10+ more categories**
+- And 10+ more categories
 
-### **Metric Categories:**
+### Metric Categories
 - **User Metrics**: totalUsers, newUsers, activeUsers
 - **Session Metrics**: sessions, bounceRate, engagementRate
 - **E-commerce**: totalRevenue, transactions, conversions
 - **Events**: eventCount, conversions, event values
 - **Advertising**: adRevenue, returnOnAdSpend
-- **And more specialized metrics**
+- And more specialized metrics
+
+---
 
 ## Troubleshooting
 
@@ -288,18 +352,22 @@ pip install --user google-analytics-mcp
 - Try reducing the date range in your queries
 - Wait a few minutes between large requests
 
+---
+
 ## Project Structure
 
 ```
 google-analytics-mcp/
 ├── ga4_mcp_server.py       # Main MCP server
-├── ga4_dimensions.json     # All available GA4 dimensions  
+├── ga4_dimensions.json     # All available GA4 dimensions
 ├── ga4_metrics.json        # All available GA4 metrics
 ├── requirements.txt        # Python dependencies
 ├── pyproject.toml          # Package configuration
-├── README.md              # This file
+├── README.md               # This file
 └── claude-config-template.json  # MCP configuration template
 ```
+
+---
 
 ## License
 
