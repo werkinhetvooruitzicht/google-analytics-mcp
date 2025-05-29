@@ -15,6 +15,9 @@
 Connect Google Analytics 4 data to Claude, Cursor and other MCP clients. Query your website traffic, user behavior, and analytics data in natural language with access to 200+ GA4 dimensions and metrics.
 
 **Compatible with:** Claude, Cursor and other MCP clients.
+
+I also built a [Google Search Console MCP](https://github.com/surendranb/google-search-console-mcp) that enables you to mix & match the data from both the sources
+
 </p>
 ---
 
