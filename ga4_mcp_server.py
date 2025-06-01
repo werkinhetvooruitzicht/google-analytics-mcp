@@ -1,7 +1,7 @@
 from fastmcp import FastMCP
 from google.analytics.data_v1beta import BetaAnalyticsDataClient
 from google.analytics.data_v1beta.types import (
-    DateRange, Dimension, Metric, RunReportRequest
+    DateRange, Dimension, Metric, RunReportRequest, Filter, FilterExpression, FilterExpressionList
 )
 import os
 import sys
@@ -37,10 +37,10 @@ def load_dimensions():
     """Load available dimensions from JSON file"""
     try:
         script_dir = Path(__file__).parent
-        with open(script_dir / "ga4_dimensions.json", "r") as f:
+        with open(script_dir / "ga4_dimensions_json.json", "r") as f:
             return json.load(f)
     except FileNotFoundError:
-        print("Warning: ga4_dimensions.json not found", file=sys.stderr)
+        print("Warning: ga4_dimensions_json.json not found", file=sys.stderr)
         return {}
 
 def load_metrics():
@@ -128,7 +128,8 @@ def get_ga4_data(
     dimensions=["date"],
     metrics=["totalUsers", "newUsers", "bounceRate", "screenPageViewsPerSession", "averageSessionDuration"],
     date_range_start="7daysAgo",
-    date_range_end="yesterday"
+    date_range_end="yesterday",
+    dimension_filter=None
 ):
     """
     Retrieve GA4 metrics data broken down by the specified dimensions.
@@ -140,6 +141,7 @@ def get_ga4_data(
                  representation (e.g., "[\"totalUsers\"]" or "totalUsers,newUsers").
         date_range_start: Start date in YYYY-MM-DD format or relative date like '7daysAgo'.
         date_range_end: End date in YYYY-MM-DD format or relative date like 'yesterday'.
+        dimension_filter: (Optional) JSON string or dict representing a GA4 FilterExpression. See GA4 API docs for structure.
         
     Returns:
         List of dictionaries containing the requested data, or an error dictionary.
@@ -149,16 +151,11 @@ def get_ga4_data(
         parsed_dimensions = dimensions
         if isinstance(dimensions, str):
             try:
-                # Attempt to parse as JSON array first (e.g., "[\"date\", \"city\"]")
                 parsed_dimensions = json.loads(dimensions)
-                # Ensure it's a list after parsing; if json.loads gives a single string, wrap it in a list
                 if not isinstance(parsed_dimensions, list):
                     parsed_dimensions = [str(parsed_dimensions)]
             except json.JSONDecodeError:
-                # If not a valid JSON string, treat as comma-separated (e.g., "date,city" or "date")
                 parsed_dimensions = [d.strip() for d in dimensions.split(',')]
-        
-        # Ensure all elements are non-empty strings after potential parsing
         parsed_dimensions = [str(d).strip() for d in parsed_dimensions if str(d).strip()]
 
         # Handle cases where metrics might be passed as a string
@@ -167,10 +164,9 @@ def get_ga4_data(
             try:
                 parsed_metrics = json.loads(metrics)
                 if not isinstance(parsed_metrics, list):
-                     parsed_metrics = [str(parsed_metrics)]
+                    parsed_metrics = [str(parsed_metrics)]
             except json.JSONDecodeError:
                 parsed_metrics = [m.strip() for m in metrics.split(',')]
-        
         parsed_metrics = [str(m).strip() for m in parsed_metrics if str(m).strip()]
 
         # Proceed if we have valid dimensions and metrics after parsing
@@ -179,52 +175,96 @@ def get_ga4_data(
         if not parsed_metrics:
             return {"error": "Metrics list cannot be empty after parsing."}
 
+        # Validate dimension_filter and build FilterExpression if provided
+        filter_expression = None
+        if dimension_filter:
+            # Load valid dimensions from ga4_dimensions.json
+            valid_dimensions = set()
+            dims_json = load_dimensions()
+            for cat in dims_json.values():
+                valid_dimensions.update(cat.keys())
+            # Parse filter input
+            if isinstance(dimension_filter, str):
+                try:
+                    filter_dict = json.loads(dimension_filter)
+                except Exception as e:
+                    return {"error": f"Failed to parse dimension_filter JSON: {e}"}
+            elif isinstance(dimension_filter, dict):
+                filter_dict = dimension_filter
+            else:
+                return {"error": "dimension_filter must be a JSON string or dict."}
+
+            # Recursive helper to build FilterExpression from dict
+            def build_filter_expr(expr):
+                if 'andGroup' in expr:
+                    return FilterExpression(and_group=FilterExpressionList(
+                        expressions=[build_filter_expr(e) for e in expr['andGroup']['expressions']]
+                    ))
+                if 'orGroup' in expr:
+                    return FilterExpression(or_group=FilterExpressionList(
+                        expressions=[build_filter_expr(e) for e in expr['orGroup']['expressions']]
+                    ))
+                if 'notExpression' in expr:
+                    return FilterExpression(not_expression=build_filter_expr(expr['notExpression']))
+                if 'filter' in expr:
+                    f = expr['filter']
+                    field = f.get('fieldName')
+                    if field not in valid_dimensions:
+                        return None
+                    if 'stringFilter' in f:
+                        sf = f['stringFilter']
+                        return FilterExpression(filter=Filter(
+                            field_name=field,
+                            string_filter=Filter.StringFilter(
+                                value=sf.get('value', ''),
+                                match_type=sf.get('matchType', 'EXACT'),
+                                case_sensitive=sf.get('caseSensitive', False)
+                            )
+                        ))
+                    if 'inListFilter' in f:
+                        ilf = f['inListFilter']
+                        return FilterExpression(filter=Filter(
+                            field_name=field,
+                            in_list_filter=Filter.InListFilter(
+                                values=ilf.get('values', []),
+                                case_sensitive=ilf.get('caseSensitive', False)
+                            )
+                        ))
+                return None
+            filter_expression = build_filter_expr(filter_dict)
+            if filter_expression is None:
+                return {"error": "Invalid or unsupported dimension_filter structure, or invalid dimension name."}
+
         # GA4 API Call
         client = BetaAnalyticsDataClient()
-        
-        # Convert dimensions and metrics to GA4 API format
         dimension_objects = [Dimension(name=d) for d in parsed_dimensions]
         metric_objects = [Metric(name=m) for m in parsed_metrics]
-        
-        # Build the request
         request = RunReportRequest(
             property=f"properties/{GA4_PROPERTY_ID}",
             dimensions=dimension_objects,
             metrics=metric_objects,
-            date_ranges=[DateRange(start_date=date_range_start, end_date=date_range_end)]
+            date_ranges=[DateRange(start_date=date_range_start, end_date=date_range_end)],
+            dimension_filter=filter_expression if filter_expression else None
         )
-        
-        # Execute the request
         response = client.run_report(request)
-        
-        # Format the response into a more usable structure
         result = []
         for row_idx, row in enumerate(response.rows):
             data_row = {}
-            
-            # Extract dimension values
             for i, dimension_header in enumerate(response.dimension_headers):
-                # Check if dimension_values has enough elements
                 if i < len(row.dimension_values):
                     data_row[dimension_header.name] = row.dimension_values[i].value
                 else:
                     data_row[dimension_header.name] = None
-                
-            # Extract metric values
             for i, metric_header in enumerate(response.metric_headers):
-                 # Check if metric_values has enough elements
                 if i < len(row.metric_values):
                     data_row[metric_header.name] = row.metric_values[i].value
                 else:
                     data_row[metric_header.name] = None
-                    
             result.append(data_row)
-        
         return result
     except Exception as e:
         error_message = f"Error fetching GA4 data: {str(e)}"
         print(error_message, file=sys.stderr)
-        # Include more details if available, e.g. from e.details() for gRPC errors
         if hasattr(e, 'details'):
             error_message += f" Details: {e.details()}"
         return {"error": error_message}

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "google-analytics-mcp"
-version = "1.0.5"
+version = "1.0.6"
 description = "Google Analytics 4 MCP Server - Access GA4 data in Claude, Cursor and other MCP clients"
 readme = "README.md"
 license = {text = "MIT"}
