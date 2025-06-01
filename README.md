@@ -8,7 +8,7 @@
 [![PyPI Downloads](https://static.pepy.tech/badge/google-analytics-mcp)](https://pepy.tech/projects/google-analytics-mcp)
 [![GitHub stars](https://img.shields.io/github/stars/surendranb/google-analytics-mcp?style=social)](https://github.com/surendranb/google-analytics-mcp/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/surendranb/google-analytics-mcp?style=social)](https://github.com/surendranb/google-analytics-mcp/network/members)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Made with Love](https://img.shields.io/badge/Made%20with-❤️-red.svg)](https://github.com/surendranb/google-analytics-mcp)
 
@@ -26,7 +26,7 @@ I also built a [Google Search Console MCP](https://github.com/surendranb/google-
 **Check your Python setup:**
 
 ```bash
-# Check Python version (need 3.8+)
+# Check Python version (need 3.10+)
 python --version
 python3 --version
 
@@ -36,7 +36,7 @@ pip3 --version
 ```
 
 **Required:**
-- Python 3.8 or higher
+- Python 3.10 or higher
 - Google Analytics 4 property with data
 - Service account with Analytics Reporting API access
 
