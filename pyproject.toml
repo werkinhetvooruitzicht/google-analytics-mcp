@@ -4,16 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "google-analytics-mcp"
-version = "1.0.2"
+version = "1.0.5"
 description = "Google Analytics 4 MCP Server - Access GA4 data in Claude, Cursor and other MCP clients"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
     {name = "Surendran B", email = "reachsuren@gmail.com"}
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
-    "fastmcp>=0.1.0",
+    "fastmcp>=2.0.0",
     "google-analytics-data>=0.16.0",
 ]
 keywords = ["google-analytics", "mcp", "ai-assistant", "analytics", "ga4", "claude", "cursor", "windsurf"]
@@ -22,8 +22,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
