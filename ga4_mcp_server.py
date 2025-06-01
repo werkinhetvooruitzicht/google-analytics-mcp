@@ -47,7 +47,7 @@ def load_metrics():
     """Load available metrics from JSON file"""
     try:
         script_dir = Path(__file__).parent
-        with open(script_dir / "ga4_metrics.json", "r") as f:
+        with open(script_dir / "ga4_metrics_json.json", "r") as f:
             return json.load(f)
     except FileNotFoundError:
         print("Warning: ga4_metrics.json not found", file=sys.stderr)
@@ -178,11 +178,14 @@ def get_ga4_data(
         # Validate dimension_filter and build FilterExpression if provided
         filter_expression = None
         if dimension_filter:
-            # Load valid dimensions from ga4_dimensions.json
+            print(f"DEBUG: Processing dimension_filter: {dimension_filter}", file=sys.stderr)
+            
+            # Load valid dimensions from ga4_dimensions_json.json
             valid_dimensions = set()
             dims_json = load_dimensions()
             for cat in dims_json.values():
                 valid_dimensions.update(cat.keys())
+            
             # Parse filter input
             if isinstance(dimension_filter, str):
                 try:
@@ -196,41 +199,80 @@ def get_ga4_data(
 
             # Recursive helper to build FilterExpression from dict
             def build_filter_expr(expr):
-                if 'andGroup' in expr:
-                    return FilterExpression(and_group=FilterExpressionList(
-                        expressions=[build_filter_expr(e) for e in expr['andGroup']['expressions']]
-                    ))
-                if 'orGroup' in expr:
-                    return FilterExpression(or_group=FilterExpressionList(
-                        expressions=[build_filter_expr(e) for e in expr['orGroup']['expressions']]
-                    ))
-                if 'notExpression' in expr:
-                    return FilterExpression(not_expression=build_filter_expr(expr['notExpression']))
-                if 'filter' in expr:
-                    f = expr['filter']
-                    field = f.get('fieldName')
-                    if field not in valid_dimensions:
-                        return None
-                    if 'stringFilter' in f:
-                        sf = f['stringFilter']
-                        return FilterExpression(filter=Filter(
-                            field_name=field,
-                            string_filter=Filter.StringFilter(
-                                value=sf.get('value', ''),
-                                match_type=sf.get('matchType', 'EXACT'),
-                                case_sensitive=sf.get('caseSensitive', False)
-                            )
-                        ))
-                    if 'inListFilter' in f:
-                        ilf = f['inListFilter']
-                        return FilterExpression(filter=Filter(
-                            field_name=field,
-                            in_list_filter=Filter.InListFilter(
-                                values=ilf.get('values', []),
-                                case_sensitive=ilf.get('caseSensitive', False)
-                            )
-                        ))
-                return None
+                try:
+                    if 'andGroup' in expr:
+                        expressions = []
+                        for e in expr['andGroup']['expressions']:
+                            built_expr = build_filter_expr(e)
+                            if built_expr is None:
+                                return None
+                            expressions.append(built_expr)
+                        return FilterExpression(and_group=FilterExpressionList(expressions=expressions))
+                    
+                    if 'orGroup' in expr:
+                        expressions = []
+                        for e in expr['orGroup']['expressions']:
+                            built_expr = build_filter_expr(e)
+                            if built_expr is None:
+                                return None
+                            expressions.append(built_expr)
+                        return FilterExpression(or_group=FilterExpressionList(expressions=expressions))
+                    
+                    if 'notExpression' in expr:
+                        built_expr = build_filter_expr(expr['notExpression'])
+                        if built_expr is None:
+                            return None
+                        return FilterExpression(not_expression=built_expr)
+                    
+                    if 'filter' in expr:
+                        f = expr['filter']
+                        field = f.get('fieldName')
+                        if not field:
+                            print(f"DEBUG: Missing fieldName in filter: {f}", file=sys.stderr)
+                            return None
+                        if field not in valid_dimensions:
+                            print(f"DEBUG: Invalid dimension '{field}'. Valid: {sorted(list(valid_dimensions))[:10]}...", file=sys.stderr)
+                            return None
+                        
+                        if 'stringFilter' in f:
+                            sf = f['stringFilter']
+                            # Map string match types to API enum values
+                            match_type_map = {
+                                'EXACT': Filter.StringFilter.MatchType.EXACT,
+                                'BEGINS_WITH': Filter.StringFilter.MatchType.BEGINS_WITH,
+                                'ENDS_WITH': Filter.StringFilter.MatchType.ENDS_WITH,
+                                'CONTAINS': Filter.StringFilter.MatchType.CONTAINS,
+                                'FULL_REGEXP': Filter.StringFilter.MatchType.FULL_REGEXP,
+                                'PARTIAL_REGEXP': Filter.StringFilter.MatchType.PARTIAL_REGEXP
+                            }
+                            match_type = match_type_map.get(sf.get('matchType', 'EXACT'), Filter.StringFilter.MatchType.EXACT)
+                            
+                            return FilterExpression(filter=Filter(
+                                field_name=field,
+                                string_filter=Filter.StringFilter(
+                                    value=sf.get('value', ''),
+                                    match_type=match_type,
+                                    case_sensitive=sf.get('caseSensitive', False)
+                                )
+                            ))
+                        
+                        if 'inListFilter' in f:
+                            ilf = f['inListFilter']
+                            return FilterExpression(filter=Filter(
+                                field_name=field,
+                                in_list_filter=Filter.InListFilter(
+                                    values=ilf.get('values', []),
+                                    case_sensitive=ilf.get('caseSensitive', False)
+                                )
+                            ))
+                    
+                    print(f"DEBUG: Unrecognized filter structure: {expr}", file=sys.stderr)
+                    return None
+                    
+                except Exception as e:
+                    print(f"DEBUG: Exception in build_filter_expr: {e}", file=sys.stderr)
+                    return None
+            
             filter_expression = build_filter_expr(filter_dict)
             if filter_expression is None:
                 return {"error": "Invalid or unsupported dimension_filter structure, or invalid dimension name."}
