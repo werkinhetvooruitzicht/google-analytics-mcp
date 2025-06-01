@@ -1,10 +1,11 @@
 <p align="center">
   <img src="logo.png" alt="Google Analytics MCP Logo" width="120" />
-</p>
+
 
 # Google Analytics MCP Server
 
 [![PyPI version](https://badge.fury.io/py/google-analytics-mcp.svg)](https://badge.fury.io/py/google-analytics-mcp)
+[![PyPI Downloads](https://static.pepy.tech/badge/google-analytics-mcp)](https://pepy.tech/projects/google-analytics-mcp)
 [![GitHub stars](https://img.shields.io/github/stars/surendranb/google-analytics-mcp?style=social)](https://github.com/surendranb/google-analytics-mcp/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/surendranb/google-analytics-mcp?style=social)](https://github.com/surendranb/google-analytics-mcp/network/members)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
@@ -15,6 +16,9 @@ Connect Google Analytics 4 data to Claude, Cursor and other MCP clients. Query y
 
 **Compatible with:** Claude, Cursor and other MCP clients.
 
+I also built a [Google Search Console MCP](https://github.com/surendranb/google-search-console-mcp) that enables you to mix & match the data from both the sources
+
+</p>
 ---
 
 ## Prerequisites
