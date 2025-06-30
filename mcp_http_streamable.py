@@ -36,6 +36,8 @@ API_PASSWORD = os.getenv("API_PASSWORD", "changeme")
 
 def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
     """Verify basic auth credentials"""
+    print(f"Auth attempt - Username: {credentials.username}, Expected: {API_USERNAME}", file=sys.stderr)
+    
     is_correct_username = secrets.compare_digest(
         credentials.username.encode("utf8"),
         API_USERNAME.encode("utf8")
@@ -44,12 +46,20 @@ def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
         credentials.password.encode("utf8"),
         API_PASSWORD.encode("utf8")
     )
+    
+    if not is_correct_username:
+        print(f"Auth failed - Incorrect username: {credentials.username}", file=sys.stderr)
+    if not is_correct_password:
+        print(f"Auth failed - Incorrect password", file=sys.stderr)
+    
     if not (is_correct_username and is_correct_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Basic"},
         )
+    
+    print(f"Auth success - User: {credentials.username}", file=sys.stderr)
     return credentials.username
 
 # Add CORS middleware
@@ -300,7 +310,8 @@ async def mcp_stream_info(username: str = Depends(verify_credentials)):
     """
     Stream endpoint info - returns streaming capabilities
     """
-    return {
+    print(f"GET /stream - User: {username}", file=sys.stderr)
+    response = {
         "type": "mcp-streamable",
         "version": "1.0.0",
         "server": "ga4-analytics",
@@ -316,6 +327,8 @@ async def mcp_stream_info(username: str = Depends(verify_credentials)):
             "streaming": True
         }
     }
+    print(f"GET /stream response: {json.dumps(response)[:100]}...", file=sys.stderr)
+    return response
 
 @app.post("/stream", tags=["MCP"])
 async def mcp_stream_endpoint(
@@ -325,10 +338,16 @@ async def mcp_stream_endpoint(
     """
     HTTP Streamable MCP endpoint - handles all MCP requests with streaming responses
     """
+    print(f"POST /stream - User: {username}", file=sys.stderr)
+    print(f"Headers: {dict(request.headers)}", file=sys.stderr)
+    
     try:
         # Parse the request body
         body = await request.json()
+        print(f"Request body: {json.dumps(body)}", file=sys.stderr)
+        
         mcp_request = MCPRequest(**body)
+        print(f"MCP method: {mcp_request.method}, id: {mcp_request.id}", file=sys.stderr)
         
         # Return streaming response
         return StreamingResponse(
@@ -340,6 +359,7 @@ async def mcp_stream_endpoint(
             }
         )
     except Exception as e:
+        print(f"ERROR in POST /stream: {str(e)}", file=sys.stderr)
         raise HTTPException(
             status_code=400,
             detail=f"Invalid request: {str(e)}"
@@ -388,9 +408,11 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     host = os.getenv("HOST", "0.0.0.0")
     
-    print(f"Starting GA4 MCP Streamable Server on {host}:{port}")
-    print(f"HTTP Streamable endpoint: http://{host}:{port}/stream")
-    print(f"Standard MCP endpoint: http://{host}:{port}/mcp")
-    print(f"API docs: http://{host}:{port}/docs")
+    print(f"Starting GA4 MCP Streamable Server on {host}:{port}", file=sys.stderr)
+    print(f"HTTP Streamable endpoint: http://{host}:{port}/stream", file=sys.stderr)
+    print(f"Standard MCP endpoint: http://{host}:{port}/mcp", file=sys.stderr)
+    print(f"API docs: http://{host}:{port}/docs", file=sys.stderr)
+    print(f"Auth configured - Username: {API_USERNAME}", file=sys.stderr)
+    print(f"Environment check - GA4_PROPERTY_ID: {GA4_PROPERTY_ID}", file=sys.stderr)
     
-    uvicorn.run(app, host=host, port=port)
+    uvicorn.run(app, host=host, port=port, log_level="info")
