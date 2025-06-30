@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "ga4-analytics": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--log-driver", "none",
+        "-e", "GA4_PROPERTY_ID=YOUR_PROPERTY_ID",
+        "-e", "GA4_PROJECT_ID=YOUR_PROJECT_ID",
+        "-e", "GA4_PRIVATE_KEY_ID=YOUR_PRIVATE_KEY_ID",
+        "-e", "GA4_PRIVATE_KEY=YOUR_PRIVATE_KEY",
+        "-e", "GA4_CLIENT_EMAIL=YOUR_CLIENT_EMAIL",
+        "-e", "GA4_CLIENT_ID=YOUR_CLIENT_ID",
+        "ga4-mcp-server"
+      ]
+    }
+  }
+}

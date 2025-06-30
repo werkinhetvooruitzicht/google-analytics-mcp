@@ -28,6 +28,7 @@ COPY --from=builder /root/.local /home/appuser/.local
 # Copy application files
 COPY --chown=appuser:appuser ga4_mcp_server.py .
 COPY --chown=appuser:appuser ga4_http_server.py .
+COPY --chown=appuser:appuser mcp_http_bridge.py .
 
 # Create directory for credentials
 RUN mkdir -p /app/credentials && chown -R appuser:appuser /app
@@ -63,5 +64,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:8000/', timeout=10).raise_for_status()"
 
-# Run the HTTP server by default
-CMD ["python", "ga4_http_server.py"]
+# Run the MCP HTTP bridge by default
+CMD ["python", "mcp_http_bridge.py"]
