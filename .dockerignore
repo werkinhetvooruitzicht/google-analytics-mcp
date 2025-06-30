@@ -1,0 +1,65 @@
+# Git files
+.git
+.gitignore
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentation
+*.md
+docs/
+LICENSE
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Credentials (should be mounted at runtime)
+credentials/
+*.json
+*.pem
+*.key
+
+# Docker files
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Test files
+tests/
+test_*.py
+*_test.py
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# MacOS
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
