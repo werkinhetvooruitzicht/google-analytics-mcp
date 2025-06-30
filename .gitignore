@@ -6,5 +6,6 @@ __pycache__/
 
 # Credentials
 credentials/
-*.json
 claude_desktop.config
+mcp.json
+.mcp.json
