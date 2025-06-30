@@ -25,14 +25,40 @@ if not GA4_PROPERTY_ID:
     print("Please set it to your GA4 property ID (e.g., 123456789)", file=sys.stderr)
     sys.exit(1)
 
-# Handle credentials - only use environment variables
+# Initialize credentials as None - will be created when needed
 credentials = None
-if all([GA4_PROJECT_ID, GA4_PRIVATE_KEY_ID, GA4_PRIVATE_KEY, GA4_CLIENT_EMAIL, GA4_CLIENT_ID]):
-    # Use environment variables to create credentials
-    print("Using credentials from environment variables", file=sys.stderr)
+
+def get_credentials():
+    """Get or create Google Analytics credentials"""
+    global credentials
     
-    # Replace escaped newlines in private key
-    private_key = GA4_PRIVATE_KEY.replace('\\n', '\n')
+    if credentials is not None:
+        return credentials
+    
+    if not all([GA4_PROJECT_ID, GA4_PRIVATE_KEY_ID, GA4_PRIVATE_KEY, GA4_CLIENT_EMAIL, GA4_CLIENT_ID]):
+        print("ERROR: No valid credentials found", file=sys.stderr)
+        print("Please provide all of these environment variables:", file=sys.stderr)
+        print("   - GA4_PROJECT_ID", file=sys.stderr)
+        print("   - GA4_PRIVATE_KEY_ID", file=sys.stderr)
+        print("   - GA4_PRIVATE_KEY", file=sys.stderr)
+        print("   - GA4_CLIENT_EMAIL", file=sys.stderr)
+        print("   - GA4_CLIENT_ID", file=sys.stderr)
+        raise ValueError("Missing required environment variables")
+    
+    print("Creating credentials from environment variables", file=sys.stderr)
+    
+    # Process the private key - handle different formats
+    private_key = GA4_PRIVATE_KEY
+    
+    # If the key contains literal \n, replace with actual newlines
+    if '\\n' in private_key:
+        private_key = private_key.replace('\\n', '\n')
+    
+    # Ensure the key has proper headers
+    if not private_key.startswith('-----BEGIN'):
+        private_key = '-----BEGIN PRIVATE KEY-----\n' + private_key
+    if not private_key.endswith('-----\n'):
+        private_key = private_key.rstrip() + '\n-----END PRIVATE KEY-----\n'
     
     # Create credentials dictionary
     credentials_info = {
@@ -48,20 +74,17 @@ if all([GA4_PROJECT_ID, GA4_PRIVATE_KEY_ID, GA4_PRIVATE_KEY, GA4_CLIENT_EMAIL, G
         "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{GA4_CLIENT_EMAIL.replace('@', '%40')}"
     }
     
-    # Create credentials object
-    credentials = service_account.Credentials.from_service_account_info(
-        credentials_info,
-        scopes=["https://www.googleapis.com/auth/analytics.readonly"]
-    )
-else:
-    print("ERROR: No valid credentials found", file=sys.stderr)
-    print("Please provide all of these environment variables:", file=sys.stderr)
-    print("   - GA4_PROJECT_ID", file=sys.stderr)
-    print("   - GA4_PRIVATE_KEY_ID", file=sys.stderr)
-    print("   - GA4_PRIVATE_KEY", file=sys.stderr)
-    print("   - GA4_CLIENT_EMAIL", file=sys.stderr)
-    print("   - GA4_CLIENT_ID", file=sys.stderr)
-    sys.exit(1)
+    try:
+        # Create credentials object
+        credentials = service_account.Credentials.from_service_account_info(
+            credentials_info,
+            scopes=["https://www.googleapis.com/auth/analytics.readonly"]
+        )
+        return credentials
+    except Exception as e:
+        print(f"ERROR: Failed to create credentials: {e}", file=sys.stderr)
+        print("Please check your GA4_PRIVATE_KEY format", file=sys.stderr)
+        raise
 
 # Initialize FastMCP
 mcp = FastMCP("Google Analytics 4")
@@ -599,10 +622,11 @@ def get_ga4_data(
                 return {"error": "Invalid or unsupported dimension_filter structure, or invalid dimension name."}
 
         # GA4 API Call
-        if credentials:
-            client = BetaAnalyticsDataClient(credentials=credentials)
-        else:
-            client = BetaAnalyticsDataClient()
+        try:
+            creds = get_credentials()
+            client = BetaAnalyticsDataClient(credentials=creds)
+        except Exception as e:
+            return {"error": f"Failed to initialize GA4 client: {str(e)}"}
         dimension_objects = [Dimension(name=d) for d in parsed_dimensions]
         metric_objects = [Metric(name=m) for m in parsed_metrics]
         request = RunReportRequest(
