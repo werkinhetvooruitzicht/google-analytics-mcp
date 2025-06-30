@@ -17,17 +17,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application files
 COPY ga4_mcp_server.py .
-COPY ga4_dimensions.json .
-COPY ga4_metrics.json .
+COPY ga4_http_server.py .
 
 # Create directory for credentials
 RUN mkdir -p /app/credentials
 
 # Set environment variables with defaults
-# Option 1: Use JSON file (default path)
+# Google Analytics Configuration
 ENV GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/ga4-service-account.json
-
-# Option 2: Use individual environment variables (leave empty, set in Coolify)
 ENV GA4_PROPERTY_ID=""
 ENV GA4_PROJECT_ID=""
 ENV GA4_PRIVATE_KEY_ID=""
@@ -35,10 +32,16 @@ ENV GA4_PRIVATE_KEY=""
 ENV GA4_CLIENT_EMAIL=""
 ENV GA4_CLIENT_ID=""
 
+# HTTP Server Configuration
+ENV PORT=8000
+ENV HOST=0.0.0.0
+ENV API_USERNAME="admin"
+ENV API_PASSWORD="changeme"
+
 ENV PYTHONUNBUFFERED=1
 
-# The MCP server uses stdio, not HTTP
-# If you need HTTP access, you'll need to add a wrapper service
+# Expose HTTP port
+EXPOSE 8000
 
-# Run the MCP server
-CMD ["python", "ga4_mcp_server.py"]
+# Run the HTTP server by default
+CMD ["python", "ga4_http_server.py"]

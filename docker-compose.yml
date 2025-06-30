@@ -1,9 +1,11 @@
 version: '3.8'
 
 services:
-  ga4-mcp-server:
+  ga4-http-api:
     build: .
-    container_name: ga4-mcp-server
+    container_name: ga4-http-api
+    ports:
+      - "${PORT:-8000}:8000"
     environment:
       # GA4 Configuration
       - GA4_PROPERTY_ID=${GA4_PROPERTY_ID}
@@ -16,28 +18,38 @@ services:
       - GA4_CLIENT_ID=${GA4_CLIENT_ID}
       
       # Option 2: Use JSON file (set path if using file)
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/ga4-service-account.json
+      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-/app/credentials/ga4-service-account.json}
+      
+      # HTTP Server Configuration
+      - PORT=${PORT:-8000}
+      - HOST=${HOST:-0.0.0.0}
+      - API_USERNAME=${API_USERNAME}
+      - API_PASSWORD=${API_PASSWORD}
       
     volumes:
       # Only needed if using JSON file method
-      - ./credentials/ga4-service-account.json:/app/credentials/ga4-service-account.json:ro
+      - ./credentials:/app/credentials:ro
       
     restart: unless-stopped
-    
-    # MCP servers communicate via stdio, not HTTP
-    # If you need HTTP access, consider adding a wrapper service
-    stdin_open: true
-    tty: true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
-  # Optional: Add a reverse proxy with basic auth for HTTP access
-  # nginx:
-  #   image: nginx:alpine
-  #   container_name: ga4-mcp-proxy
-  #   ports:
-  #     - "8080:80"
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
-  #     - ./.htpasswd:/etc/nginx/.htpasswd:ro
-  #   depends_on:
-  #     - ga4-mcp-server
+  # Optional: Original MCP server for Claude Desktop
+  # ga4-mcp-server:
+  #   build: .
+  #   container_name: ga4-mcp-server
+  #   command: ["python", "ga4_mcp_server.py"]
+  #   environment:
+  #     - GA4_PROPERTY_ID=${GA4_PROPERTY_ID}
+  #     - GA4_PROJECT_ID=${GA4_PROJECT_ID}
+  #     - GA4_PRIVATE_KEY_ID=${GA4_PRIVATE_KEY_ID}
+  #     - GA4_PRIVATE_KEY=${GA4_PRIVATE_KEY}
+  #     - GA4_CLIENT_EMAIL=${GA4_CLIENT_EMAIL}
+  #     - GA4_CLIENT_ID=${GA4_CLIENT_ID}
+  #   stdin_open: true
+  #   tty: true
   #   restart: unless-stopped
