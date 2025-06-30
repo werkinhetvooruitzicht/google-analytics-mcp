@@ -31,12 +31,8 @@ COPY --chown=appuser:appuser ga4_http_server.py .
 COPY --chown=appuser:appuser mcp_http_bridge.py .
 COPY --chown=appuser:appuser mcp_http_streamable.py .
 
-# Create directory for credentials
-RUN mkdir -p /app/credentials && chown -R appuser:appuser /app
-
 # Set environment variables with defaults
-# Google Analytics Configuration
-ENV GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/ga4-service-account.json
+# Google Analytics Configuration (must be set via environment)
 ENV GA4_PROPERTY_ID=""
 ENV GA4_PROJECT_ID=""
 ENV GA4_PRIVATE_KEY_ID=""

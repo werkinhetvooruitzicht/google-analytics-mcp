@@ -12,8 +12,7 @@ import tempfile
 # Configuration from environment variables
 GA4_PROPERTY_ID = os.getenv("GA4_PROPERTY_ID")
 
-# Check for credentials - support both JSON file and individual env vars
-CREDENTIALS_PATH = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+# Only use individual environment variables
 GA4_PROJECT_ID = os.getenv("GA4_PROJECT_ID")
 GA4_PRIVATE_KEY_ID = os.getenv("GA4_PRIVATE_KEY_ID")
 GA4_PRIVATE_KEY = os.getenv("GA4_PRIVATE_KEY")
@@ -26,12 +25,9 @@ if not GA4_PROPERTY_ID:
     print("Please set it to your GA4 property ID (e.g., 123456789)", file=sys.stderr)
     sys.exit(1)
 
-# Handle credentials
+# Handle credentials - only use environment variables
 credentials = None
-if CREDENTIALS_PATH and os.path.exists(CREDENTIALS_PATH):
-    # Use JSON file if provided
-    print(f"Using credentials from file: {CREDENTIALS_PATH}", file=sys.stderr)
-elif all([GA4_PROJECT_ID, GA4_PRIVATE_KEY_ID, GA4_PRIVATE_KEY, GA4_CLIENT_EMAIL, GA4_CLIENT_ID]):
+if all([GA4_PROJECT_ID, GA4_PRIVATE_KEY_ID, GA4_PRIVATE_KEY, GA4_CLIENT_EMAIL, GA4_CLIENT_ID]):
     # Use environment variables to create credentials
     print("Using credentials from environment variables", file=sys.stderr)
     
@@ -59,9 +55,7 @@ elif all([GA4_PROJECT_ID, GA4_PRIVATE_KEY_ID, GA4_PRIVATE_KEY, GA4_CLIENT_EMAIL,
     )
 else:
     print("ERROR: No valid credentials found", file=sys.stderr)
-    print("Please provide either:", file=sys.stderr)
-    print("1. GOOGLE_APPLICATION_CREDENTIALS pointing to a JSON file, or", file=sys.stderr)
-    print("2. All of these environment variables:", file=sys.stderr)
+    print("Please provide all of these environment variables:", file=sys.stderr)
     print("   - GA4_PROJECT_ID", file=sys.stderr)
     print("   - GA4_PRIVATE_KEY_ID", file=sys.stderr)
     print("   - GA4_PRIVATE_KEY", file=sys.stderr)

@@ -8,25 +8,18 @@ services:
       # GA4 Configuration
       - GA4_PROPERTY_ID=${GA4_PROPERTY_ID}
       
-      # Option 1: Use individual environment variables (recommended for Coolify)
+      # GA4 Credentials (required)
       - GA4_PROJECT_ID=${GA4_PROJECT_ID}
       - GA4_PRIVATE_KEY_ID=${GA4_PRIVATE_KEY_ID}
       - GA4_PRIVATE_KEY=${GA4_PRIVATE_KEY}
       - GA4_CLIENT_EMAIL=${GA4_CLIENT_EMAIL}
       - GA4_CLIENT_ID=${GA4_CLIENT_ID}
       
-      # Option 2: Use JSON file (set path if using file)
-      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-/app/credentials/ga4-service-account.json}
-      
       # HTTP Server Configuration
       - PORT=${PORT:-8000}
       - HOST=${HOST:-0.0.0.0}
       - API_USERNAME=${API_USERNAME}
       - API_PASSWORD=${API_PASSWORD}
-      
-    volumes:
-      # Only needed if using JSON file method
-      - ./credentials:/app/credentials:ro
       
     restart: unless-stopped
     healthcheck:
