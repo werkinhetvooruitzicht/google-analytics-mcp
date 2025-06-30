@@ -286,7 +286,35 @@ async def root():
         "service": "GA4 MCP Streamable Server",
         "protocol": "MCP over HTTP Streamable",
         "version": "1.0.0",
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
+        "endpoints": {
+            "stream": "/stream",
+            "mcp": "/mcp",
+            "health": "/"
+        },
+        "transport_types": ["http-streamable", "http"]
+    }
+
+@app.get("/stream", tags=["MCP"])
+async def mcp_stream_info(username: str = Depends(verify_credentials)):
+    """
+    Stream endpoint info - returns streaming capabilities
+    """
+    return {
+        "type": "mcp-streamable",
+        "version": "1.0.0",
+        "server": "ga4-analytics",
+        "endpoint": "/stream",
+        "method": "POST",
+        "content_type": "application/json",
+        "response_type": "application/x-ndjson",
+        "authentication": "Basic",
+        "capabilities": {
+            "tools": True,
+            "resources": False,
+            "prompts": False,
+            "streaming": True
+        }
     }
 
 @app.post("/stream", tags=["MCP"])

@@ -31,11 +31,14 @@ The server runs on port 8000 and provides:
 2. Search for **MCP Client (HTTP Streamable) API**
 3. Configure:
    - **HTTP Streamable URL**: `http://owc8o00osgwcgks880g8wkog.172.201.74.13.sslip.io/stream`
-   - **Additional Headers**:
+   - **Additional Headers**: (one per line)
      ```
-     Authorization: Basic Z2E0XzhueDdhdWc4OnYmdSc6XDhoeCV2PUU5e1FYd2AkTj5DKQ==
+     Authorization:Basic Z2E0XzhueDdhdWc4OnYmdSc6XDhoeCV2PUU5e1FYd2AkTj5DKQ==
+     Content-Type:application/json
+     Accept:application/x-ndjson
      ```
-   - Or use username/password if the node supports it
+
+Note: Make sure there's no space after the colon in headers (e.g., `Authorization:Basic` not `Authorization: Basic`)
 
 ### 2. Add MCP Client Node to Workflow
 
