@@ -3,9 +3,7 @@ version: '3.8'
 services:
   ga4-http-api:
     build: .
-    container_name: ga4-http-api
-    ports:
-      - "${PORT:-8000}:8000"
+    # Ports are handled by Coolify, no need to define them here
     environment:
       # GA4 Configuration
       - GA4_PROPERTY_ID=${GA4_PROPERTY_ID}
