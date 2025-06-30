@@ -12,9 +12,9 @@ This guide explains how to use the GA4 MCP Bridge with n8n's MCP Client node.
 
 The bridge runs on port 8000 and provides:
 
-### MCP Endpoint
-- **POST** `/mcp` - Main MCP protocol endpoint
-- Requires Basic Auth
+### MCP Endpoints
+- **GET** `/mcp` - MCP server info and capabilities (requires Basic Auth)
+- **POST** `/mcp` - Main MCP protocol endpoint (requires Basic Auth)
 
 ### Health Check
 - **GET** `/` - Server status (no auth required)

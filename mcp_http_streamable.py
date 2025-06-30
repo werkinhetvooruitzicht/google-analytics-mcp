@@ -1,8 +1,9 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, AsyncGenerator
 import uvicorn
 import os
 import sys
@@ -21,8 +22,8 @@ from ga4_mcp_server import (
 )
 
 app = FastAPI(
-    title="GA4 MCP Bridge for n8n",
-    description="MCP-compatible HTTP bridge for Google Analytics 4",
+    title="GA4 MCP Streamable Server",
+    description="MCP-compatible HTTP Streamable server for Google Analytics 4",
     version="1.0.0"
 )
 
@@ -67,94 +68,42 @@ class MCPRequest(BaseModel):
     params: Optional[Dict[str, Any]] = None
     id: Optional[int] = None
 
-class MCPError(BaseModel):
-    code: int
-    message: str
-    data: Optional[Any] = None
-
-class MCPResponse(BaseModel):
-    jsonrpc: str = "2.0"
-    result: Optional[Any] = None
-    error: Optional[MCPError] = None
-    id: Optional[int] = None
-
-# MCP endpoints
-@app.get("/", tags=["Health"])
-async def root():
-    """Health check endpoint"""
-    return {
-        "status": "online",
-        "service": "GA4 MCP Bridge",
-        "protocol": "MCP over HTTP",
-        "timestamp": datetime.now().isoformat()
-    }
-
-@app.get("/mcp", tags=["MCP"])
-async def mcp_info(username: str = Depends(verify_credentials)):
-    """
-    MCP info endpoint - returns server capabilities
-    """
-    return {
-        "type": "mcp",
-        "version": "2024-11-05",
-        "server": "ga4-analytics",
-        "capabilities": {
-            "tools": True,
-            "resources": False,
-            "prompts": False,
-            "logging": False
-        },
-        "endpoint": "/mcp",
-        "method": "POST",
-        "authentication": "Basic"
-    }
-
-@app.post("/mcp", tags=["MCP"])
-async def mcp_endpoint(
-    request: MCPRequest,
-    username: str = Depends(verify_credentials)
-):
-    """
-    MCP Protocol endpoint - handles all MCP requests
-    
-    Example request:
-    ```json
-    {
-        "jsonrpc": "2.0",
-        "method": "tools/list",
-        "id": 1
-    }
-    ```
-    """
+async def stream_mcp_response(request: MCPRequest) -> AsyncGenerator[bytes, None]:
+    """Generate streaming MCP responses"""
     try:
+        response = None
+        
         # Handle different MCP methods
         if request.method == "initialize":
-            return MCPResponse(
-                jsonrpc="2.0",
-                result={
-                    "protocolVersion": "2024-11-05",
+            response = {
+                "jsonrpc": "2.0",
+                "result": {
+                    "protocolVersion": "1.0.0",
                     "capabilities": {
-                        "tools": {}
+                        "tools": {},
+                        "resources": {},
+                        "prompts": {}
                     },
                     "serverInfo": {
                         "name": "ga4-analytics",
                         "version": "1.0.0"
                     }
                 },
-                id=request.id
-            )
+                "id": request.id
+            }
         
         elif request.method == "tools/list":
-            return MCPResponse(
-                jsonrpc="2.0",
-                result={
+            response = {
+                "jsonrpc": "2.0",
+                "result": {
                     "tools": [
                         {
                             "name": "list_dimension_categories",
                             "description": "List all available GA4 dimension categories with descriptions",
                             "inputSchema": {
                                 "type": "object",
-                                "properties": {}
+                                "properties": {},
+                                "required": []
                             }
                         },
                         {
@@ -162,7 +111,8 @@ async def mcp_endpoint(
                             "description": "List all available GA4 metric categories with descriptions",
                             "inputSchema": {
                                 "type": "object",
-                                "properties": {}
+                                "properties": {},
+                                "required": []
                             }
                         },
                         {
@@ -225,33 +175,35 @@ async def mcp_endpoint(
                                         "type": "object",
                                         "description": "Optional GA4 FilterExpression"
                                     }
-                                }
+                                },
+                                "required": []
                             }
                         }
                     ]
                 },
-                id=request.id
-            )
+                "id": request.id
+            }
         
         elif request.method == "tools/call":
             tool_name = request.params.get("name")
             arguments = request.params.get("arguments", {})
             
             # Call the appropriate tool
+            tool_result = None
             if tool_name == "list_dimension_categories":
-                result = list_dimension_categories()
+                tool_result = list_dimension_categories()
             elif tool_name == "list_metric_categories":
-                result = list_metric_categories()
+                tool_result = list_metric_categories()
             elif tool_name == "get_dimensions_by_category":
-                result = get_dimensions_by_category(
+                tool_result = get_dimensions_by_category(
                     category=arguments.get("category")
                 )
             elif tool_name == "get_metrics_by_category":
-                result = get_metrics_by_category(
+                tool_result = get_metrics_by_category(
                     category=arguments.get("category")
                 )
             elif tool_name == "get_ga4_data":
-                result = get_ga4_data(
+                tool_result = get_ga4_data(
                     dimensions=arguments.get("dimensions", ["date"]),
                     metrics=arguments.get("metrics", ["totalUsers", "newUsers"]),
                     date_range_start=arguments.get("date_range_start", "7daysAgo"),
@@ -259,103 +211,158 @@ async def mcp_endpoint(
                     dimension_filter=arguments.get("dimension_filter")
                 )
             else:
-                return MCPResponse(
-                    jsonrpc="2.0",
-                    error=MCPError(
-                        code=-32601,
-                        message=f"Unknown tool: {tool_name}"
-                    ),
-                    id=request.id
-                )
+                response = {
+                    "jsonrpc": "2.0",
+                    "error": {
+                        "code": -32601,
+                        "message": f"Unknown tool: {tool_name}"
+                    },
+                    "id": request.id
+                }
             
-            return MCPResponse(
-                jsonrpc="2.0",
-                result={
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": json.dumps(result, indent=2)
-                        }
-                    ]
+            if tool_result is not None:
+                response = {
+                    "jsonrpc": "2.0",
+                    "result": {
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": json.dumps(tool_result, indent=2)
+                            }
+                        ]
+                    },
+                    "id": request.id
+                }
+        
+        elif request.method == "resources/list":
+            response = {
+                "jsonrpc": "2.0",
+                "result": {
+                    "resources": []
                 },
-                id=request.id
-            )
+                "id": request.id
+            }
+        
+        elif request.method == "prompts/list":
+            response = {
+                "jsonrpc": "2.0",
+                "result": {
+                    "prompts": []
+                },
+                "id": request.id
+            }
         
         else:
-            return MCPResponse(
-                jsonrpc="2.0",
-                error=MCPError(
-                    code=-32601,
-                    message=f"Method not found: {request.method}"
-                ),
-                id=request.id
-            )
+            response = {
+                "jsonrpc": "2.0",
+                "error": {
+                    "code": -32601,
+                    "message": f"Method not found: {request.method}"
+                },
+                "id": request.id
+            }
+        
+        # Stream the response
+        if response:
+            yield json.dumps(response).encode('utf-8') + b'\n'
     
     except Exception as e:
-        return MCPResponse(
-            jsonrpc="2.0",
-            error=MCPError(
-                code=-32603,
-                message="Internal error",
-                data=str(e)
-            ),
-            id=request.id
+        error_response = {
+            "jsonrpc": "2.0",
+            "error": {
+                "code": -32603,
+                "message": "Internal error",
+                "data": str(e)
+            },
+            "id": request.id
+        }
+        yield json.dumps(error_response).encode('utf-8') + b'\n'
+
+@app.get("/", tags=["Health"])
+async def root():
+    """Health check endpoint"""
+    return {
+        "status": "online",
+        "service": "GA4 MCP Streamable Server",
+        "protocol": "MCP over HTTP Streamable",
+        "version": "1.0.0",
+        "timestamp": datetime.now().isoformat()
+    }
+
+@app.post("/stream", tags=["MCP"])
+async def mcp_stream_endpoint(
+    request: Request,
+    username: str = Depends(verify_credentials)
+):
+    """
+    HTTP Streamable MCP endpoint - handles all MCP requests with streaming responses
+    """
+    try:
+        # Parse the request body
+        body = await request.json()
+        mcp_request = MCPRequest(**body)
+        
+        # Return streaming response
+        return StreamingResponse(
+            stream_mcp_response(mcp_request),
+            media_type="application/x-ndjson",
+            headers={
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no"
+            }
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid request: {str(e)}"
         )
 
-# Legacy REST endpoints for backward compatibility
-@app.get("/api/dimensions", tags=["REST API"])
-async def list_dimensions_rest(username: str = Depends(verify_credentials)):
-    """REST endpoint for listing dimensions"""
-    return list_dimension_categories()
-
-@app.get("/api/metrics", tags=["REST API"])
-async def list_metrics_rest(username: str = Depends(verify_credentials)):
-    """REST endpoint for listing metrics"""
-    return list_metric_categories()
-
-@app.get("/api/dimensions/{category}", tags=["REST API"])
-async def get_dimensions_by_category_rest(
-    category: str,
+# Legacy endpoints for compatibility
+@app.post("/mcp", tags=["MCP"])
+async def mcp_endpoint(
+    request: MCPRequest,
     username: str = Depends(verify_credentials)
 ):
-    """REST endpoint for getting dimensions by category"""
-    return get_dimensions_by_category(category)
+    """
+    Standard MCP endpoint (non-streaming)
+    """
+    # Convert streaming response to standard response
+    response_data = b""
+    async for chunk in stream_mcp_response(request):
+        response_data += chunk
+    
+    return json.loads(response_data.decode('utf-8'))
 
-@app.get("/api/metrics/{category}", tags=["REST API"])
-async def get_metrics_by_category_rest(
-    category: str,
-    username: str = Depends(verify_credentials)
-):
-    """REST endpoint for getting metrics by category"""
-    return get_metrics_by_category(category)
-
-class GA4DataRequest(BaseModel):
-    dimensions: List[str] = Field(default=["date"])
-    metrics: List[str] = Field(default=["totalUsers", "newUsers"])
-    date_range_start: str = Field(default="7daysAgo")
-    date_range_end: str = Field(default="yesterday")
-    dimension_filter: Optional[Dict[str, Any]] = None
-
-@app.post("/api/data", tags=["REST API"])
-async def get_ga4_data_rest(
-    request: GA4DataRequest,
-    username: str = Depends(verify_credentials)
-):
-    """REST endpoint for getting GA4 data"""
-    return get_ga4_data(
-        dimensions=request.dimensions,
-        metrics=request.metrics,
-        date_range_start=request.date_range_start,
-        date_range_end=request.date_range_end,
-        dimension_filter=request.dimension_filter
-    )
+@app.get("/mcp", tags=["MCP"])
+async def mcp_info(username: str = Depends(verify_credentials)):
+    """
+    MCP info endpoint - returns server capabilities
+    """
+    return {
+        "type": "mcp",
+        "version": "1.0.0",
+        "server": "ga4-analytics",
+        "transports": ["http-streamable", "http"],
+        "endpoints": {
+            "stream": "/stream",
+            "standard": "/mcp"
+        },
+        "capabilities": {
+            "tools": True,
+            "resources": False,
+            "prompts": False,
+            "logging": False
+        },
+        "authentication": "Basic"
+    }
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     host = os.getenv("HOST", "0.0.0.0")
     
-    print(f"Starting GA4 MCP Bridge on {host}:{port}")
-    print(f"MCP endpoint: http://{host}:{port}/mcp")
+    print(f"Starting GA4 MCP Streamable Server on {host}:{port}")
+    print(f"HTTP Streamable endpoint: http://{host}:{port}/stream")
+    print(f"Standard MCP endpoint: http://{host}:{port}/mcp")
     print(f"API docs: http://{host}:{port}/docs")
     
     uvicorn.run(app, host=host, port=port)
