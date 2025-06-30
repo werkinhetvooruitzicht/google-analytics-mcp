@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  ga4-mcp-server:
+    build: .
+    container_name: ga4-mcp-server
+    environment:
+      # GA4 Configuration
+      - GA4_PROPERTY_ID=${GA4_PROPERTY_ID}
+      
+      # Option 1: Use individual environment variables (recommended for Coolify)
+      - GA4_PROJECT_ID=${GA4_PROJECT_ID}
+      - GA4_PRIVATE_KEY_ID=${GA4_PRIVATE_KEY_ID}
+      - GA4_PRIVATE_KEY=${GA4_PRIVATE_KEY}
+      - GA4_CLIENT_EMAIL=${GA4_CLIENT_EMAIL}
+      - GA4_CLIENT_ID=${GA4_CLIENT_ID}
+      
+      # Option 2: Use JSON file (set path if using file)
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/ga4-service-account.json
+      
+    volumes:
+      # Only needed if using JSON file method
+      - ./credentials/ga4-service-account.json:/app/credentials/ga4-service-account.json:ro
+      
+    restart: unless-stopped
+    
+    # MCP servers communicate via stdio, not HTTP
+    # If you need HTTP access, consider adding a wrapper service
+    stdin_open: true
+    tty: true
+
+  # Optional: Add a reverse proxy with basic auth for HTTP access
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: ga4-mcp-proxy
+  #   ports:
+  #     - "8080:80"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./.htpasswd:/etc/nginx/.htpasswd:ro
+  #   depends_on:
+  #     - ga4-mcp-server
+  #   restart: unless-stopped

@@ -3,29 +3,70 @@ from google.analytics.data_v1beta import BetaAnalyticsDataClient
 from google.analytics.data_v1beta.types import (
     DateRange, Dimension, Metric, RunReportRequest, Filter, FilterExpression, FilterExpressionList
 )
+from google.oauth2 import service_account
 import os
 import sys
 import json
+import tempfile
 
 # Configuration from environment variables
-CREDENTIALS_PATH = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 GA4_PROPERTY_ID = os.getenv("GA4_PROPERTY_ID")
 
-# Validate required environment variables
-if not CREDENTIALS_PATH:
-    print("ERROR: GOOGLE_APPLICATION_CREDENTIALS environment variable not set", file=sys.stderr)
-    print("Please set it to the path of your service account JSON file", file=sys.stderr)
-    sys.exit(1)
+# Check for credentials - support both JSON file and individual env vars
+CREDENTIALS_PATH = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+GA4_PROJECT_ID = os.getenv("GA4_PROJECT_ID")
+GA4_PRIVATE_KEY_ID = os.getenv("GA4_PRIVATE_KEY_ID")
+GA4_PRIVATE_KEY = os.getenv("GA4_PRIVATE_KEY")
+GA4_CLIENT_EMAIL = os.getenv("GA4_CLIENT_EMAIL")
+GA4_CLIENT_ID = os.getenv("GA4_CLIENT_ID")
 
+# Validate GA4_PROPERTY_ID
 if not GA4_PROPERTY_ID:
     print("ERROR: GA4_PROPERTY_ID environment variable not set", file=sys.stderr)
     print("Please set it to your GA4 property ID (e.g., 123456789)", file=sys.stderr)
     sys.exit(1)
 
-# Validate credentials file exists
-if not os.path.exists(CREDENTIALS_PATH):
-    print(f"ERROR: Credentials file not found: {CREDENTIALS_PATH}", file=sys.stderr)
-    print("Please check the GOOGLE_APPLICATION_CREDENTIALS path", file=sys.stderr)
+# Handle credentials
+credentials = None
+if CREDENTIALS_PATH and os.path.exists(CREDENTIALS_PATH):
+    # Use JSON file if provided
+    print(f"Using credentials from file: {CREDENTIALS_PATH}", file=sys.stderr)
+elif all([GA4_PROJECT_ID, GA4_PRIVATE_KEY_ID, GA4_PRIVATE_KEY, GA4_CLIENT_EMAIL, GA4_CLIENT_ID]):
+    # Use environment variables to create credentials
+    print("Using credentials from environment variables", file=sys.stderr)
+    
+    # Replace escaped newlines in private key
+    private_key = GA4_PRIVATE_KEY.replace('\\n', '\n')
+    
+    # Create credentials dictionary
+    credentials_info = {
+        "type": "service_account",
+        "project_id": GA4_PROJECT_ID,
+        "private_key_id": GA4_PRIVATE_KEY_ID,
+        "private_key": private_key,
+        "client_email": GA4_CLIENT_EMAIL,
+        "client_id": GA4_CLIENT_ID,
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{GA4_CLIENT_EMAIL.replace('@', '%40')}"
+    }
+    
+    # Create credentials object
+    credentials = service_account.Credentials.from_service_account_info(
+        credentials_info,
+        scopes=["https://www.googleapis.com/auth/analytics.readonly"]
+    )
+else:
+    print("ERROR: No valid credentials found", file=sys.stderr)
+    print("Please provide either:", file=sys.stderr)
+    print("1. GOOGLE_APPLICATION_CREDENTIALS pointing to a JSON file, or", file=sys.stderr)
+    print("2. All of these environment variables:", file=sys.stderr)
+    print("   - GA4_PROJECT_ID", file=sys.stderr)
+    print("   - GA4_PRIVATE_KEY_ID", file=sys.stderr)
+    print("   - GA4_PRIVATE_KEY", file=sys.stderr)
+    print("   - GA4_CLIENT_EMAIL", file=sys.stderr)
+    print("   - GA4_CLIENT_ID", file=sys.stderr)
     sys.exit(1)
 
 # Initialize FastMCP
@@ -564,7 +605,10 @@ def get_ga4_data(
                 return {"error": "Invalid or unsupported dimension_filter structure, or invalid dimension name."}
 
         # GA4 API Call
-        client = BetaAnalyticsDataClient()
+        if credentials:
+            client = BetaAnalyticsDataClient(credentials=credentials)
+        else:
+            client = BetaAnalyticsDataClient()
         dimension_objects = [Dimension(name=d) for d in parsed_dimensions]
         metric_objects = [Metric(name=m) for m in parsed_metrics]
         request = RunReportRequest(
