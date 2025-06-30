@@ -413,6 +413,6 @@ if __name__ == "__main__":
     print(f"Standard MCP endpoint: http://{host}:{port}/mcp", file=sys.stderr)
     print(f"API docs: http://{host}:{port}/docs", file=sys.stderr)
     print(f"Auth configured - Username: {API_USERNAME}", file=sys.stderr)
-    print(f"Environment check - GA4_PROPERTY_ID: {GA4_PROPERTY_ID}", file=sys.stderr)
+    print(f"Environment check - GA4_PROPERTY_ID: {os.getenv('GA4_PROPERTY_ID', 'NOT SET')}", file=sys.stderr)
     
     uvicorn.run(app, host=host, port=port, log_level="info")
