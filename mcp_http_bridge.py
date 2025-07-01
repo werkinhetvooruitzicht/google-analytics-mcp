@@ -239,19 +239,19 @@ async def mcp_endpoint(
             
             # Call the appropriate tool
             if tool_name == "list_dimension_categories":
-                result = list_dimension_categories()
+                result = list_dimension_categories.fn()
             elif tool_name == "list_metric_categories":
-                result = list_metric_categories()
+                result = list_metric_categories.fn()
             elif tool_name == "get_dimensions_by_category":
-                result = get_dimensions_by_category(
+                result = get_dimensions_by_category.fn(
                     category=arguments.get("category")
                 )
             elif tool_name == "get_metrics_by_category":
-                result = get_metrics_by_category(
+                result = get_metrics_by_category.fn(
                     category=arguments.get("category")
                 )
             elif tool_name == "get_ga4_data":
-                result = get_ga4_data(
+                result = get_ga4_data.fn(
                     dimensions=arguments.get("dimensions", ["date"]),
                     metrics=arguments.get("metrics", ["totalUsers", "newUsers"]),
                     date_range_start=arguments.get("date_range_start", "7daysAgo"),
@@ -306,12 +306,12 @@ async def mcp_endpoint(
 @app.get("/api/dimensions", tags=["REST API"])
 async def list_dimensions_rest(username: str = Depends(verify_credentials)):
     """REST endpoint for listing dimensions"""
-    return list_dimension_categories()
+    return list_dimension_categories.fn()
 
 @app.get("/api/metrics", tags=["REST API"])
 async def list_metrics_rest(username: str = Depends(verify_credentials)):
     """REST endpoint for listing metrics"""
-    return list_metric_categories()
+    return list_metric_categories.fn()
 
 @app.get("/api/dimensions/{category}", tags=["REST API"])
 async def get_dimensions_by_category_rest(
@@ -319,7 +319,7 @@ async def get_dimensions_by_category_rest(
     username: str = Depends(verify_credentials)
 ):
     """REST endpoint for getting dimensions by category"""
-    return get_dimensions_by_category(category)
+    return get_dimensions_by_category.fn(category)
 
 @app.get("/api/metrics/{category}", tags=["REST API"])
 async def get_metrics_by_category_rest(
@@ -327,7 +327,7 @@ async def get_metrics_by_category_rest(
     username: str = Depends(verify_credentials)
 ):
     """REST endpoint for getting metrics by category"""
-    return get_metrics_by_category(category)
+    return get_metrics_by_category.fn(category)
 
 class GA4DataRequest(BaseModel):
     dimensions: List[str] = Field(default=["date"])
@@ -342,7 +342,7 @@ async def get_ga4_data_rest(
     username: str = Depends(verify_credentials)
 ):
     """REST endpoint for getting GA4 data"""
-    return get_ga4_data(
+    return get_ga4_data.fn(
         dimensions=request.dimensions,
         metrics=request.metrics,
         date_range_start=request.date_range_start,

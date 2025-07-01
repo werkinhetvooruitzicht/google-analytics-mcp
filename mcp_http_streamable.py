@@ -203,19 +203,19 @@ async def stream_mcp_response(request: MCPRequest) -> AsyncGenerator[bytes, None
             # Call the appropriate tool
             tool_result = None
             if tool_name == "list_dimension_categories":
-                tool_result = list_dimension_categories()
+                tool_result = list_dimension_categories.fn()
             elif tool_name == "list_metric_categories":
-                tool_result = list_metric_categories()
+                tool_result = list_metric_categories.fn()
             elif tool_name == "get_dimensions_by_category":
-                tool_result = get_dimensions_by_category(
+                tool_result = get_dimensions_by_category.fn(
                     category=arguments.get("category")
                 )
             elif tool_name == "get_metrics_by_category":
-                tool_result = get_metrics_by_category(
+                tool_result = get_metrics_by_category.fn(
                     category=arguments.get("category")
                 )
             elif tool_name == "get_ga4_data":
-                tool_result = get_ga4_data(
+                tool_result = get_ga4_data.fn(
                     dimensions=arguments.get("dimensions", ["date"]),
                     metrics=arguments.get("metrics", ["totalUsers", "newUsers"]),
                     date_range_start=arguments.get("date_range_start", "7daysAgo"),
