@@ -36,7 +36,9 @@ API_PASSWORD = os.getenv("API_PASSWORD", "changeme")
 
 def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
     """Verify basic auth credentials"""
-    print(f"Auth attempt - Username: {credentials.username}, Expected: {API_USERNAME}", file=sys.stderr)
+    import logging
+    logger = logging.getLogger("uvicorn")
+    logger.info(f"Auth attempt - Username: {credentials.username}, Expected: {API_USERNAME}")
     
     is_correct_username = secrets.compare_digest(
         credentials.username.encode("utf8"),
@@ -48,9 +50,9 @@ def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
     )
     
     if not is_correct_username:
-        print(f"Auth failed - Incorrect username: {credentials.username}", file=sys.stderr)
+        logger.info(f"Auth failed - Incorrect username: {credentials.username}")
     if not is_correct_password:
-        print(f"Auth failed - Incorrect password", file=sys.stderr)
+        logger.info(f"Auth failed - Incorrect password")
     
     if not (is_correct_username and is_correct_password):
         raise HTTPException(
@@ -59,7 +61,7 @@ def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
             headers={"WWW-Authenticate": "Basic"},
         )
     
-    print(f"Auth success - User: {credentials.username}", file=sys.stderr)
+    logger.info(f"Auth success - User: {credentials.username}")
     return credentials.username
 
 # Add CORS middleware
