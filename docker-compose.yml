@@ -7,8 +7,6 @@ services:
     labels:
       # Disable buffering for SSE compatibility
       - traefik.http.middlewares.ga4-no-buffering.buffering.flushInterval=10ms
-      # Apply no-buffering middleware to the router (based on your Coolify configuration)
-      - traefik.http.routers.http-0-lkg0sgc84o000owkw8gowsoo-ga4-http-api.middlewares=ga4-no-buffering@docker
     environment:
       # GA4 Configuration
       - GA4_PROPERTY_ID=${GA4_PROPERTY_ID}
