@@ -33,21 +33,24 @@ API_PASSWORD = os.getenv("API_PASSWORD", "changeme")
 
 def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
     """Verify basic auth credentials"""
-    is_correct_username = secrets.compare_digest(
-        credentials.username.encode("utf8"),
-        API_USERNAME.encode("utf8")
-    )
-    is_correct_password = secrets.compare_digest(
-        credentials.password.encode("utf8"),
-        API_PASSWORD.encode("utf8")
-    )
-    if not (is_correct_username and is_correct_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    return credentials.username
+    # TEMPORARILY DISABLED FOR TESTING
+    return "test_user"
+    
+    # is_correct_username = secrets.compare_digest(
+    #     credentials.username.encode("utf8"),
+    #     API_USERNAME.encode("utf8")
+    # )
+    # is_correct_password = secrets.compare_digest(
+    #     credentials.password.encode("utf8"),
+    #     API_PASSWORD.encode("utf8")
+    # )
+    # if not (is_correct_username and is_correct_password):
+    #     raise HTTPException(
+    #         status_code=status.HTTP_401_UNAUTHORIZED,
+    #         detail="Incorrect username or password",
+    #         headers={"WWW-Authenticate": "Basic"},
+    #     )
+    # return credentials.username
 
 # Add CORS middleware to allow n8n to access the API
 app.add_middleware(

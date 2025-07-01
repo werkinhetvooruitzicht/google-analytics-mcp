@@ -38,31 +38,35 @@ def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
     """Verify basic auth credentials"""
     import logging
     logger = logging.getLogger("uvicorn")
-    logger.info(f"Auth attempt - Username: {credentials.username}, Expected: {API_USERNAME}")
+    # TEMPORARILY DISABLED FOR TESTING
+    logger.info(f"Auth DISABLED for testing")
+    return "test_user"
     
-    is_correct_username = secrets.compare_digest(
-        credentials.username.encode("utf8"),
-        API_USERNAME.encode("utf8")
-    )
-    is_correct_password = secrets.compare_digest(
-        credentials.password.encode("utf8"),
-        API_PASSWORD.encode("utf8")
-    )
-    
-    if not is_correct_username:
-        logger.info(f"Auth failed - Incorrect username: {credentials.username}")
-    if not is_correct_password:
-        logger.info(f"Auth failed - Incorrect password")
-    
-    if not (is_correct_username and is_correct_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    
-    logger.info(f"Auth success - User: {credentials.username}")
-    return credentials.username
+    # logger.info(f"Auth attempt - Username: {credentials.username}, Expected: {API_USERNAME}")
+    # 
+    # is_correct_username = secrets.compare_digest(
+    #     credentials.username.encode("utf8"),
+    #     API_USERNAME.encode("utf8")
+    # )
+    # is_correct_password = secrets.compare_digest(
+    #     credentials.password.encode("utf8"),
+    #     API_PASSWORD.encode("utf8")
+    # )
+    # 
+    # if not is_correct_username:
+    #     logger.info(f"Auth failed - Incorrect username: {credentials.username}")
+    # if not is_correct_password:
+    #     logger.info(f"Auth failed - Incorrect password")
+    # 
+    # if not (is_correct_username and is_correct_password):
+    #     raise HTTPException(
+    #         status_code=status.HTTP_401_UNAUTHORIZED,
+    #         detail="Incorrect username or password",
+    #         headers={"WWW-Authenticate": "Basic"},
+    #     )
+    # 
+    # logger.info(f"Auth success - User: {credentials.username}")
+    # return credentials.username
 
 # Add CORS middleware
 app.add_middleware(
@@ -308,11 +312,11 @@ async def root():
     }
 
 @app.get("/stream", tags=["MCP"])
-async def mcp_stream_info(username: str = Depends(verify_credentials)):
+async def mcp_stream_info():
     """
     Stream endpoint info - returns streaming capabilities
     """
-    print(f"GET /stream - User: {username}", file=sys.stderr)
+    print(f"GET /stream - User: test_user (auth disabled)", file=sys.stderr)
     response = {
         "type": "mcp-streamable",
         "version": "1.0.0",
@@ -334,13 +338,12 @@ async def mcp_stream_info(username: str = Depends(verify_credentials)):
 
 @app.post("/stream", tags=["MCP"])
 async def mcp_stream_endpoint(
-    request: Request,
-    username: str = Depends(verify_credentials)
+    request: Request
 ):
     """
     HTTP Streamable MCP endpoint - handles all MCP requests with streaming responses
     """
-    print(f"POST /stream - User: {username}", file=sys.stderr)
+    print(f"POST /stream - User: test_user (auth disabled)", file=sys.stderr)
     print(f"Headers: {dict(request.headers)}", file=sys.stderr)
     
     try:
