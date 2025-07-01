@@ -4,9 +4,6 @@ services:
   ga4-http-api:
     build: .
     # Ports are handled by Coolify, no need to define them here
-    labels:
-      # Disable buffering for SSE compatibility
-      - traefik.http.middlewares.ga4-no-buffering.buffering.flushInterval=10ms
     environment:
       # GA4 Configuration
       - GA4_PROPERTY_ID=${GA4_PROPERTY_ID}
